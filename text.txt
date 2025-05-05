@@ -1,0 +1,112 @@
+import gi
+gi.require_version('Gst', '1.0')
+gi.require_version('GObject', '2.0')
+gi.require_version('GLib', '2.0')
+from gi.repository import Gst, GLib
+
+def on_eos(bus, msg, loop):
+    """Handle end of stream (EOS)"""
+    print("End of Stream")
+    loop.quit()
+
+def on_error(bus, msg, loop):
+    """Handle errors in the pipeline"""
+    err, debug = msg.parse_error()
+    print(f"Error: {err}, {debug}")
+    loop.quit()
+
+def create_pipeline(rtsp_url, output_filename=None):
+    """Create a GStreamer pipeline for RTSP streaming with DeepStream"""
+    pipeline = Gst.Pipeline.new("deepstream-pipeline")
+
+    # Create RTSP source
+    rtsp_src = Gst.ElementFactory.make("rtspsrc", "rtsp-src")
+    rtsp_src.set_property("location", rtsp_url)
+    rtsp_src.set_property("latency", 100)
+
+    # RTSP source pads (Dynamic pads handling)
+    rtsp_src.connect("pad-added", on_pad_added, pipeline)
+
+    # Decode the stream (use hardware-accelerated decode plugin for H.264)
+    depay = Gst.ElementFactory.make("rtph264depay", "depay")
+    decoder = Gst.ElementFactory.make("nvv4l2decoder", "nv-nvv4l2decoder")  # Use NVIDIA hardware decoder
+
+    # Convert to NV12 format for DeepStream
+    converter = Gst.ElementFactory.make("nvvideoconvert", "nv-converter")
+
+    # Optional: Use NVIDIA's On-Screen Display (OSD) plugin to overlay metadata
+    osd = Gst.ElementFactory.make("nvdsosd", "osd")
+
+    # Sink element to render the video
+    sink = Gst.ElementFactory.make("nveglglessink", "sink")  # Hardware-accelerated OpenGL sink
+
+    # Ensure all elements are created
+    if not all([rtsp_src, depay, decoder, converter, osd, sink]):
+        print("Error: Unable to create one or more elements.")
+        return None
+
+    # Add elements to pipeline
+    pipeline.add(rtsp_src)
+    pipeline.add(depay)
+    pipeline.add(decoder)
+    pipeline.add(converter)
+    pipeline.add(osd)
+    pipeline.add(sink)
+
+    # Link elements in pipeline
+    depay.link(decoder)
+    decoder.link(converter)
+    converter.link(osd)
+    osd.link(sink)
+
+    return pipeline
+
+def on_pad_added(src, new_pad, pipeline):
+    """Handle dynamic pad addition from the RTSP source"""
+    depay = pipeline.get_by_name("depay")
+    sink_pad = depay.get_static_pad("sink")
+    if not sink_pad.is_linked():
+        new_pad.link(sink_pad)
+
+def main():
+    # Initialize GStreamer
+    Gst.init(None)
+
+    # RTSP stream URLs
+    rtsp_urls = [
+        "rtsp://ProjectTheft2024:Theft%402024@103.106.195.202:554/cam/realmonitor?channel=1&subtype=0",
+        "rtsp://ProjectTheft2024:Theft%402024@103.194.88.114/cam/realmonitor?channel=1&subtype=0",
+        "rtsp://ProjectTheft2024:Theft%402024@115.244.177.86/cam/realmonitor?channel=1&subtype=0"
+    ]
+
+    # Create a main event loop
+    loop = GLib.MainLoop()
+
+    # Create a pipeline for each RTSP stream
+    pipelines = []
+    for url in rtsp_urls:
+        pipeline = create_pipeline(url)
+        if pipeline:
+            pipelines.append(pipeline)
+
+    # Bus to handle errors and EOS
+    bus = pipelines[0].get_bus()
+    bus.add_signal_watch()
+    bus.connect("message::error", on_error, loop)
+    bus.connect("message::eos", on_eos, loop)
+
+    # Start playing the pipelines
+    for pipeline in pipelines:
+        pipeline.set_state(Gst.State.PLAYING)
+
+    try:
+        loop.run()
+    except KeyboardInterrupt:
+        pass
+
+    # Clean up and stop pipelines
+    for pipeline in pipelines:
+        pipeline.set_state(Gst.State.NULL)
+
+if __name__ == "__main__":
+    main()

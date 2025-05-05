@@ -1,0 +1,62 @@
+[application]
+enable-perf-measurement=1
+perf-measurement-interval-sec = 5
+
+[tiled-display]
+enable=1
+gpu-id=0
+width=1920
+height=1080
+square-seq-grid=1
+
+[source-list]
+num-source-bins = 2
+list = rtsp://ProjectTheft2024:Theft%402024@115.244.177.86/cam/realmonitor?channel=1&subtype=0;rtsp://ProjectTheft2024:Theft%402024@103.194.88.114/cam/realmonitor?channel=1&subtype=0
+sgie-batch-size = 6
+sensor-id-list=1;2
+sensor-name-list=a;b
+max-batch-size = 6
+
+
+[source-attr-all]
+enable=1
+type=4
+num-sources=1
+gpu-id=0
+cudadec-memtype=0
+latency=100
+rtsp-reconnect-interval-sec=10
+rtsp-reconnect-attempts=4
+
+[streammux]
+gpu-id = 0
+batch-size=20
+batched-push-timeout=30000
+live-source = 1
+batch-size = 6
+width = 1280
+height = 760
+nvbuf-memory-type = 0
+
+[pre-process]
+enable=1
+config-file=config_preprocess.txt
+roi-enable=1
+
+[primary-gie]
+enable = 1
+gpu-id = 0
+model-engine-file = /opt/nvidia/deepstream/deepstream-7.1/samples/models/Primary_Detector/resnet18_trafficcamnet_pruned.onnx_b1_gpu0_int8.engine
+gie-unique-id=1
+nvbuf-memory-type=0
+config-file = config_infra.txt
+
+[sink0]
+enable = 1
+type = 2
+gpu-id=0
+sync = 0
+nvbuf-memory-type = 2
+
+[tests]
+file-loop=0

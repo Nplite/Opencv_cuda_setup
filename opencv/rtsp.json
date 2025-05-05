@@ -1,0 +1,15 @@
+[
+    {
+        "uri": "rtsp://ProjectTheft2024:Theft%402024@115.244.177.86/cam/realmonitor?channel=1&subtype=0",
+        "roi": [150,87,224,249]
+    },
+    {
+        "uri": "rtsp://ProjectTheft2024:Theft%402024@103.194.88.114/cam/realmonitor?channel=1&subtype=0",
+        "roi": [150,87,224,249]
+    },
+    {
+        "uri": "rtsp://ProjectTheft2024:Theft%402024@103.106.195.202/cam/realmonitor?channel=1&subtype=0",
+        "roi": [145,122,291,232]
+
+    }
+]
