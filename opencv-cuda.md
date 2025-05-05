@@ -152,7 +152,7 @@ docker build -t opencv-cuda .
    ```
 
 **2  Install dependencies**
-```
+```bash
 apt install python3 pip
 pip install numpy==1.23.5
 pip install ultralytics
