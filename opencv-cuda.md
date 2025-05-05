@@ -148,8 +148,18 @@ docker build -t opencv-cuda .
    If you need GUI applications inside Docker, run:
    ```bash
    xhost +local:docker
+
    ```
-**2. Run the Container**
+
+**2  Install dependencies**
+```
+apt install python3 pip
+pip install numpy==1.23.5
+pip install ultralytics
+pip install cupy-cuda12x
+pip install -r requirements.txt
+```
+**3. Run the Container**
 
    Use the following command to start a container with GPU access:
    ```bash
