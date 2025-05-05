@@ -153,8 +153,12 @@ docker build -t opencv-cuda .
 
    Use the following command to start a container with GPU access:
    ```bash
-   docker run --rm -it -p 8888:8888 --gpus all \
-     -e DISPLAY=$DISPLAY \
-     -v /tmp/.X11-unix:/tmp/.X11-unix \
-     opencv-cuda
+docker run --rm -it -p 8888:8888 --gpus all \
+  -e DISPLAY=$DISPLAY \
+  -v /tmp/.X11-unix:/tmp/.X11-unix \
+  -v /home/aiserver/Desktop/cuda_opencv:/workspace \
+  opencv-cuda
+
+cd ..
+cd workspace
    ```
